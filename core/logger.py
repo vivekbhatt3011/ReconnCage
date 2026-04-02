@@ -3,24 +3,29 @@ from pathlib import Path
 
 
 class Logger:
-    def __init__(self, logfile: Path):
-        self.logfile = logfile
+    def __init__(self, log_file: Path):
+        self.log_file = log_file
 
+        # Ensure parent directory exists
+        self.log_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # =========================
+    # INTERNAL WRITER
+    # =========================
     def _write(self, level: str, message: str):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] [{level}] {message}"
+        entry = f"[{timestamp}] [{level}] {message}"
 
-        # Print to console
-        print(log_entry)
+        # Console output
+        print(entry)
 
-        # Write to file
-        with open(self.logfile, "a") as f:
-            f.write(log_entry + "\n")
+        # File output
+        with open(self.log_file, "a") as f:
+            f.write(entry + "\n")
 
     # =========================
     # LOG LEVELS
     # =========================
-
     def info(self, message: str):
         self._write("INFO", message)
 
@@ -32,3 +37,12 @@ class Logger:
 
     def error(self, message: str):
         self._write("ERROR", message)
+
+    # =========================
+    # SPECIAL HELPERS
+    # =========================
+    def start_phase(self, phase_name: str):
+        self.info(f"===== START: {phase_name} =====")
+
+    def end_phase(self, phase_name: str):
+        self.success(f"===== END: {phase_name} =====")

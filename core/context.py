@@ -2,51 +2,45 @@ class Context:
     def __init__(self, target: str):
         self.target = target
 
-        # =========================
-        # RAW DISCOVERY DATA
-        # =========================
-        self.subdomains = []       # from subfinder
-        self.urls = []             # from wayback
-        self.alive = []            # from httpx
-        self.ports = []            # from nmap
+        # Discovery
+        self.subdomains = []
+        self.urls = []
+        self.alive = []
+        self.ports = []
 
-        # =========================
-        # ENRICHED DATA
-        # =========================
-        self.tech = {}             # {url: tech stack}
-        self.endpoints = []        # extracted endpoints (future)
+        # Enrichment
+        self.tech = {}
+        self.endpoints = []
 
-        # =========================
-        # INTELLIGENCE
-        # =========================
-        self.score = {}            # {url: score}
-        self.interesting = []      # key findings
+        # Intelligence
+        self.score = {}
+        self.interesting = []
 
-    # =========================
-    # HELPER METHODS
-    # =========================
+    # -------------------------
+    # ADDERS (clean + dedup)
+    # -------------------------
 
-    def add_subdomains(self, subs):
-        self.subdomains.extend(subs)
-        self.subdomains = list(set(self.subdomains))
+    def add_subdomains(self, data):
+        self.subdomains = list(set(self.subdomains + data))
 
-    def add_urls(self, urls):
-        self.urls.extend(urls)
-        self.urls = list(set(self.urls))
+    def add_urls(self, data):
+        self.urls = list(set(self.urls + data))
 
-    def add_alive(self, hosts):
-        self.alive.extend(hosts)
-        self.alive = list(set(self.alive))
+    def add_alive(self, data):
+        self.alive = list(set(self.alive + data))
 
-    def add_ports(self, ports):
-        self.ports.extend(ports)
-        self.ports = list(set(self.ports))
+    def add_ports(self, data):
+        self.ports = list(set(self.ports + data))
 
-    def add_tech(self, tech_map):
-        self.tech.update(tech_map)
+    def add_tech(self, data: dict):
+        self.tech.update(data)
 
     def add_interesting(self, item):
         self.interesting.append(item)
+
+    # -------------------------
+    # EXPORT
+    # -------------------------
 
     def to_dict(self):
         return {
