@@ -1,21 +1,36 @@
 #!/bin/bash
 
-# Define output log file
-LOG_FILE="logs/subdomain_enum.log"
+DOMAIN=$1
 
-# Define output file
-OUTPUT_FILE="output/subdomain_enum_output.txt"
+OUTPUT_DIR="output"
+LOG_FILE="$OUTPUT_DIR/recon.log"
+SUBDOMAIN_FILE="$OUTPUT_DIR/subdomains.txt"
+TEMP_FILE="$OUTPUT_DIR/.sub_tmp.txt"
 
-# Start logging
-echo "Starting subdomain enumeration..." | tee -a $LOG_FILE
+echo "[+] Subdomain Enumeration Started for $DOMAIN" | tee -a $LOG_FILE
 
-# Run Subfinder
-echo "Running Subfinder..." | tee -a $LOG_FILE
-subfinder -d example.com -o $OUTPUT_FILE 2>>$LOG_FILE
+# Validation
+if [ -z "$DOMAIN" ]; then
+    echo "[-] No domain provided" | tee -a $LOG_FILE
+    exit 1
+fi
 
-# Run Amass
-echo "Running Amass..." | tee -a $LOG_FILE
-amass enum -d example.com -o $OUTPUT_FILE 2>>$LOG_FILE
+echo "[+] Running Subfinder..." | tee -a $LOG_FILE
+subfinder -d $DOMAIN -all -recursive -silent 2>>$LOG_FILE > $TEMP_FILE
 
-# Completion message
-echo "Subdomain enumeration completed." | tee -a $LOG_FILE
+echo "[+] Running Amass (passive)..." | tee -a $LOG_FILE
+amass enum -passive -d $DOMAIN 2>>$LOG_FILE >> $TEMP_FILE
+
+# Validation
+if [ ! -s "$TEMP_FILE" ]; then
+    echo "[-] No subdomains found" | tee -a $LOG_FILE
+    rm -f $TEMP_FILE
+    exit 1
+fi
+
+# Deduplicate
+sort -u $TEMP_FILE > $SUBDOMAIN_FILE
+rm -f $TEMP_FILE
+
+echo "[+] Subdomain Enumeration Completed" | tee -a $LOG_FILE
+echo "[+] Output: $SUBDOMAIN_FILE" | tee -a $LOG_FILE
